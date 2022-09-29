@@ -47,11 +47,6 @@ class TransactionDB {
         finder: Finder(sortOrders: [SortOrder(Field.key, false)]));
     List<Transactions> transactionList = [];
     for (var record in snapshot) {
-      // print(record['title'].runtimeType);
-      // print(record['amount'].runtimeType);
-      // print(record['date'].runtimeType);
-      // print("--------");
-      
       int id = record.key;
       String title = record['title'].toString();
       double amount = double.parse(record['amount'].toString());
@@ -71,17 +66,13 @@ class TransactionDB {
 
     //create store
     var store = intMapStoreFactory.store("expense");
+    print("item id ${statement.id}");
 
-    //filter from 'title' and 'date'
-    final finder = Finder(
-      filter: Filter.and(<Filter>[
-        Filter.equals('title', statement.title),
-        Filter.equals('date', statement.date)
-      ])
-    );
+    //filter with 'id'
+    final finder = Finder(filter: Filter.byKey(statement.id));
     var updateResult =
         await store.update(db, statement.toMap(), finder: finder);
-    print("Delete data with id $updateResult");
+    print("$updateResult row(s) updated.");
     db.close();
   }
 
@@ -94,39 +85,36 @@ class TransactionDB {
     var store = intMapStoreFactory.store("expense");
     print("Statement id is ${statement.id}");
 
-    final finder = Finder(
-      filter: Filter.and(<Filter>[
-        Filter.equals('title', statement.title),
-        Filter.equals('date', statement.date)
-      ])
-    );
+    //filter with 'id'
+    final finder = Finder(filter: Filter.equals('id', statement.id));
+
     var deleteResult = await store.delete(db, finder: finder);
-    print("Delete data with id $deleteResult");
+    print("$deleteResult row(s) deleted.");
     db.close();
   }
 
-  Future<Transactions?> loadSingleRow(int id) async {
+  Future<Transactions?> loadSingleRow(int rowId) async {
     //create db client obj
     var db = await openDatabase();
 
     //create store
     var store = intMapStoreFactory.store("expense");
+
+    //Filter store by field 'id'
     var snapshot =
-        await store.find(db, finder: Finder(filter: Filter.byKey(id)));
+        await store.find(db, finder: Finder(filter: Filter.byKey(rowId)));
+        
+
     Transactions? transaction;
-    for (var record in snapshot) {
-      // print(record['title'].runtimeType);
-      // print(record['amount'].runtimeType);
-      // print(record['date'].runtimeType);
-      // print("--------");
-      int id = int.parse(record['id'].toString());
-      String title = record['title'].toString();
-      double amount = double.parse(record['amount'].toString());
-      String date = record['date'].toString();
-      // print(record['title']);
-      transaction =
-          Transactions(id: id, title: title, amount: amount, date: date);
-    }
+
+    int id = int.parse(snapshot.first['id'].toString());
+    String title = snapshot.first['title'].toString();
+    double amount = double.parse(snapshot.first['amount'].toString());
+    String date = snapshot.first['date'].toString();
+    // print(record['title']);
+    transaction =
+        Transactions(id: id, title: title, amount: amount, date: date);
+
     db.close();
     return transaction;
   }

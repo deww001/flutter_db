@@ -56,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: providers.transactions.length,
                 itemBuilder: (context, int index) {
                   Transactions data = providers.transactions[index];
+                  
                   return Card(
                       elevation: 5,
                       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
